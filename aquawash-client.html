@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-Frame-Options" content="DENY">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https: wss:;">
+<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+<meta name="description" content="AquaWash — Self-service სამრეცხაო საბურთალოზე. გადაიხადე BOG ან TBC-ით და მანქანა ავტომატურად ირთვება.">
+<meta name="keywords" content="სამრეცხაო, სამრეცხაო საბურთალო, self-service laundry tbilisi, AquaWash, laundromat georgia">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="AquaWash — Self-service სამრეცხაო">
+<meta property="og:description" content="გადაიხადე BOG ან TBC-ით, მანქანა ავტომატურად ირთვება.">
+<meta property="og:type" content="website">
+<title>AquaWash — სამრეცხაო / Laundromat</title>
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AquaWash">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="data:application/json,{
+  &quot;name&quot;: &quot;AquaWash&quot;,
+  &quot;short_name&quot;: &quot;AquaWash&quot;,
+  &quot;description&quot;: &quot;Self-service სამრეცხაო&quot;,
+  &quot;start_url&quot;: &quot;./&quot;,
+  &quot;display&quot;: &quot;standalone&quot;,
+  &quot;background_color&quot;: &quot;#0a0a0f&quot;,
+  &quot;theme_color&quot;: &quot;#00d4ff&quot;,
+  &quot;orientation&quot;: &quot;portrait&quot;,
+  &quot;icons&quot;: [{
+    &quot;src&quot;: &quot;data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;rect width='100' height='100' rx='20' fill='%230a0a0f'/&gt;&lt;text y='.9em' font-size='80'&gt;🚿&lt;/text&gt;&lt;/svg&gt;&quot;,
+    &quot;sizes&quot;: &quot;any&quot;,
+    &quot;type&quot;: &quot;image/svg+xml&quot;,
+    &quot;purpose&quot;: &quot;any maskable&quot;
+  }]
+}">
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+  // ===== SECURITY =====
+// HTTPS enforcement
+if (location.protocol !== 'https:' && location.protocol !== 'file:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+  location.replace('https:' + window.location.href.substring(window.location.protocol.length));
+}
+
+// Disable right-click and devtools shortcuts on production
+if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) || (e.ctrlKey && e.key === 'U')) {
+      e.preventDefault();
+    }
+  });
+}
+
+const _fbApp = firebase.initializeApp({
+    apiKey: "AIzaSyBZMnqX1gTm2qlAgmleSjOb6IQpd0DFCO4",
+    authDomain: "aquawash-5ddf9.firebaseapp.com",
+    databaseURL: "https://aquawash-5ddf9-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "aquawash-5ddf9",
+    storageBucket: "aquawash-5ddf9.firebasestorage.app",
+    messagingSenderId: "522097469784",
+    appId: "1:522097469784:web:965b3338f67ad264f51d2d"
+  });
+  const _db = firebase.database();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --border: #1e2d45;
+  --accent: #00d4ff;
+  --accent2: #0099cc;
+  --green: #10b981;
+  --red: #ef4444;
+  --yellow: #f59e0b;
+  --text: #e2e8f0;
+  --text-dim: #64748b;
+  --text-muted: #334155;
+  --glow: 0 0 30px rgba(0,212,255,0.15);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Noto Sans Georgian', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content:'';
+  position: fixed; inset:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(0,212,255,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0,153,204,0.04) 0%, transparent 60%);
+  pointer-events:none; z-index:0;
+}
+
+/* Maintenance overlay */
+#maintenance-overlay {
+  position: fixed; inset:0; z-index:1000;
+  background: var(--bg);
+  display: flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:16px;
+  font-size:1.1rem; color: var(--text-dim);
+}
+#maintenance-overlay .icon { font-size:3rem; }
+#maintenance-overlay.hidden { display:none; }
+
+/* Header */
+header {
+  position: relative; z-index:10;
+  padding: 16px 20px;
+  display: flex; align-items:center; justify-content:space-between;
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  gap: 10px;
+}
+.logo { display:flex; align-items:center; gap:10px; }
+.logo-icon {
+  width:40px; height:40px; border-radius:12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.2rem; box-shadow: 0 0 20px rgba(0,212,255,0.3); flex-shrink:0;
+}
+.logo-name { font-size:1.3rem; font-weight:800; letter-spacing:-0.5px; }
+.header-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+
+.lang-switcher {
+  display:flex; border: 1px solid var(--border); border-radius:20px; overflow:hidden;
+}
+.lang-btn {
+  padding: 5px 11px; font-size:0.72rem; font-weight:700; cursor:pointer;
+  background: transparent; border:none; color: var(--text-dim);
+  transition: all 0.2s; font-family:'Space Mono',monospace;
+}
+.lang-btn.active { background: rgba(0,212,255,0.15); color: var(--accent); }
+
+.status-badge {
+  display:flex; align-items:center; gap:6px;
+  background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3);
+  padding: 5px 11px; border-radius:20px; font-size:0.72rem; color: var(--green);
+}
+.status-dot {
+  width:6px; height:6px; border-radius:50%; background: var(--green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+main {
+  position:relative; z-index:1;
+  padding: 24px 16px 60px;
+  max-width: 480px; margin: 0 auto;
+}
+
+.hero {
+  text-align:center; padding: 32px 0 40px;
+  animation: fadeUp 0.6s ease both;
+}
+.hero h1 {
+  font-size:clamp(1.6rem,5vw,2.2rem);
+  font-weight:800; line-height:1.2;
+  background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:10px;
+}
+.hero p { color: var(--text-dim); font-size:0.9rem; line-height:1.6; }
+.steps {
+  display:flex; justify-content:center; gap:8px;
+  margin-top:20px; flex-wrap:wrap;
+}
+.step {
+  display:flex; align-items:center; gap:6px;
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 6px 12px; border-radius:20px; font-size:0.78rem; color: var(--text-dim);
+}
+.step-num {
+  width:18px; height:18px; border-radius:50%;
+  background: var(--accent); color: #000; font-size:0.65rem;
+  display:flex; align-items:center; justify-content:center; font-weight:700;
+}
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:none;} }
+
+.section-title {
+  font-size:0.7rem; font-weight:700; letter-spacing:2px;
+  color: var(--text-dim); text-transform:uppercase; margin-bottom:16px;
+}
+.machines-grid {
+  display:grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+  gap:12px; margin-bottom:32px;
+}
+.machine-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius:16px; padding:20px;
+  cursor:pointer; transition: all 0.2s ease;
+  animation: fadeUp 0.5s ease both;
+  position:relative; overflow:hidden;
+}
+.machine-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background: var(--accent); opacity:0; transition:opacity 0.2s;
+}
+.machine-card:hover { border-color: var(--accent); transform:translateY(-2px); box-shadow: var(--glow); }
+.machine-card:hover::before { opacity:1; }
+.machine-card.free::before { background: var(--green); opacity:1; }
+.machine-card.busy { cursor:not-allowed; }
+.machine-card.busy::before { background: var(--yellow); opacity:1; }
+.machine-card.offline { cursor:not-allowed; opacity:0.4; }
+.machine-card.offline::before { background: var(--red); opacity:1; }
+
+.machine-card.busy .busy-anim { display: flex; }
+.busy-anim {
+  display: none; position: absolute;
+  top: 10px; right: 10px; gap: 3px; align-items: center;
+}
+.drop {
+  width: 5px; height: 7px; background: var(--yellow);
+  border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+  animation: dropBounce 1.2s ease-in-out infinite; opacity: 0.8;
+}
+.drop:nth-child(2) { animation-delay: 0.2s; }
+.drop:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dropBounce {
+  0%,100% { transform: translateY(0) scaleY(1); opacity:0.8; }
+  50% { transform: translateY(-5px) scaleY(1.2); opacity:1; }
+}
+
+.machine-card.busy .machine-num { position: relative; }
+.machine-card.busy .machine-num::after {
+  content: ''; position: absolute; inset: -6px; border-radius: 50%;
+  border: 2px solid transparent; border-top-color: var(--yellow);
+  animation: spin 1.5s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.machine-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
+.machine-num {
+  font-family:'Space Mono',monospace; font-size:1.6rem; font-weight:700;
+  color: var(--accent); line-height:1;
+}
+.machine-status-badge {
+  font-size:0.65rem; font-weight:700; letter-spacing:1px;
+  padding: 3px 8px; border-radius:10px; text-transform:uppercase;
+}
+.free .machine-status-badge { background:rgba(16,185,129,0.15); color:var(--green); }
+.busy .machine-status-badge { background:rgba(245,158,11,0.15); color:var(--yellow); }
+.offline .machine-status-badge { background:rgba(239,68,68,0.15); color:var(--red); }
+
+.machine-name { font-size:0.85rem; font-weight:600; margin-bottom:4px; }
+.machine-price {
+  font-family:'Space Mono',monospace; font-size:1.1rem;
+  color: var(--accent); font-weight:700;
+}
+
+.timer-bar-wrap { margin-top:12px; }
+.timer-label { font-size:0.7rem; color:var(--text-dim); margin-bottom:4px; display:flex; justify-content:space-between; }
+.timer-bar { height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
+.timer-fill { height:100%; background:var(--yellow); border-radius:2px; transition:width 1s linear; }
+.timer-countdown { font-family:'Space Mono',monospace; font-size:0.75rem; color:var(--yellow); }
+
+/* Payment modal */
+.modal-bg {
+  position:fixed; inset:0; z-index:100;
+  background:rgba(0,0,0,0.7); backdrop-filter:blur(6px);
+  display:flex; align-items:flex-end; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity 0.3s;
+}
+.modal-bg.open { opacity:1; pointer-events:all; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius:24px 24px 0 0; padding:28px 24px 40px;
+  width:100%; max-width:480px;
+  transform:translateY(100%); transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.modal-bg.open .modal { transform:translateY(0); }
+.modal-handle { width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px; }
+.modal-title { font-size:1.2rem; font-weight:800; margin-bottom:4px; }
+.modal-sub { font-size:0.8rem; color:var(--text-dim); margin-bottom:24px; }
+
+.bank-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
+.bank-btn {
+  background:var(--surface2); border:2px solid var(--border);
+  border-radius:14px; padding:16px; cursor:pointer;
+  transition:all 0.2s; text-align:center;
+}
+.bank-btn:hover { border-color:var(--accent); }
+.bank-btn.selected { border-color:var(--accent); background:rgba(0,212,255,0.08); }
+.bank-btn .bank-icon { font-size:1.8rem; margin-bottom:6px; }
+.bank-btn .bank-name { font-size:0.8rem; font-weight:700; }
+.bank-btn .bank-sub { font-size:0.65rem; color:var(--text-dim); }
+
+.pay-details { display:none; }
+.pay-details.visible { display:block; }
+.pay-amount-big {
+  text-align:center; margin-bottom:20px;
+  font-family:'Space Mono',monospace; font-size:2.5rem; font-weight:700;
+  color:var(--accent);
+}
+.pay-field {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:12px; padding:14px 16px; margin-bottom:10px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.pay-field-label { font-size:0.7rem; color:var(--text-dim); margin-bottom:3px; }
+.pay-field-value { font-size:0.85rem; font-weight:600; font-family:'Space Mono',monospace; }
+.copy-btn {
+  background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.2);
+  color:var(--accent); border-radius:8px; padding:6px 10px;
+  font-size:0.7rem; cursor:pointer; transition:all 0.2s; white-space:nowrap;
+}
+.copy-btn:hover { background:rgba(0,212,255,0.2); }
+.copy-btn.copied { background:rgba(16,185,129,0.2); color:var(--green); border-color:rgba(16,185,129,0.3); }
+
+.pay-note {
+  background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2);
+  border-radius:10px; padding:12px; font-size:0.75rem; color:var(--yellow);
+  margin-bottom:16px; text-align:center; line-height:1.5;
+}
+
+.btn-primary {
+  width:100%; padding:16px; border-radius:14px; border:none;
+  background:linear-gradient(135deg, var(--accent), var(--accent2));
+  color:#000; font-weight:800; font-size:1rem;
+  cursor:pointer; transition:all 0.2s; font-family:'Noto Sans Georgian',sans-serif;
+}
+.btn-primary:hover { transform:translateY(-1px); box-shadow:0 8px 30px rgba(0,212,255,0.3); }
+.btn-primary:active { transform:none; }
+.btn-secondary {
+  width:100%; padding:13px; border-radius:14px;
+  border:1px solid var(--border); background:transparent;
+  color:var(--text-dim); font-size:0.9rem; cursor:pointer;
+  transition:all 0.2s; margin-top:8px; font-family:'Noto Sans Georgian',sans-serif;
+}
+.btn-secondary:hover { border-color:var(--text-dim); color:var(--text); }
+
+.verification-screen { display:none; text-align:center; }
+.verification-screen.visible { display:block; }
+.spinner {
+  width:60px; height:60px; border-radius:50%;
+  border:3px solid var(--border); border-top-color:var(--accent);
+  animation:spin 1s linear infinite; margin:20px auto;
+}
+.verify-title { font-size:1.1rem; font-weight:700; margin-bottom:8px; }
+.verify-sub { font-size:0.8rem; color:var(--text-dim); margin-bottom:24px; }
+.verify-timer {
+  font-family:'Space Mono',monospace; font-size:2rem;
+  color:var(--accent); margin:16px 0;
+}
+
+.success-screen { display:none; text-align:center; }
+.success-screen.visible { display:block; }
+.success-icon { font-size:4rem; margin:16px 0; animation:bounce 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes bounce{from{transform:scale(0);}to{transform:scale(1);}}
+.success-title { font-size:1.3rem; font-weight:800; margin-bottom:8px; color:var(--green); }
+.success-machine {
+  background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3);
+  border-radius:12px; padding:14px; margin:16px 0;
+}
+
+.receipt-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2);
+  color: var(--accent); padding: 8px 16px; border-radius:10px;
+  font-size:0.8rem; cursor:pointer; margin-top: 10px;
+  transition:all 0.2s; font-family:'Noto Sans Georgian',sans-serif;
+}
+.receipt-btn:hover { background:rgba(0,212,255,0.2); }
+
+.toast {
+  position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(100px);
+  background:var(--surface); border:1px solid var(--border);
+  padding:12px 20px; border-radius:12px; font-size:0.85rem;
+  z-index:999; transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  white-space:nowrap; box-shadow:0 8px 30px rgba(0,0,0,0.3);
+}
+.toast.show { transform:translateX(-50%) translateY(0); }
+.toast.success { border-color:rgba(16,185,129,0.4); color:var(--green); }
+
+.input-group { margin-bottom:14px; }
+.input-label { font-size:0.72rem; color:var(--text-dim); margin-bottom:6px; display:block; }
+.input-field {
+  width:100%; background:var(--surface2); border:1px solid var(--border);
+  border-radius:10px; padding:12px 14px; color:var(--text);
+  font-size:0.9rem; font-family:'Noto Sans Georgian',sans-serif;
+  outline:none; transition:border-color 0.2s;
+}
+.input-field:focus { border-color:var(--accent); }
+
+.security-bar {
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  font-size:0.7rem; color:var(--text-muted); margin-top:16px;
+}
+</style>
+</head>
+<body>
+
+<div id="maintenance-overlay" class="hidden">
+  <div class="icon">🔧</div>
+  <div id="maint-text">საიტი დროებით მიუწვდომელია</div>
+  <div id="maint-sub" style="font-size:0.8rem;color:#475569;">ადმინი მუშაობს. მოიცადეთ...</div>
+</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon" id="logo-icon">🚿</div>
+    <div class="logo-name" id="logo-name">AquaWash</div>
+  </div>
+  <div class="header-right">
+    <div class="lang-switcher">
+      <button class="lang-btn active" id="lang-ka" onclick="setLang('ka')">KA</button>
+      <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot"></div>
+      <span id="header-status">ონლაინ</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <h1 id="hero-title">დაასკანირე. გადაიხადე. დაიწყე.</h1>
+    <button id="pwa-install-btn" onclick="installPWA()" style="display:none;align-items:center;gap:8px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent);border-radius:12px;padding:10px 18px;font-size:0.8rem;cursor:pointer;font-family:'Noto Sans Georgian',sans-serif;margin-bottom:12px;">
+      📲 აპლიკაციის დაყენება
+    </button>
+    <p id="hero-sub">Self-service სამრეცხაო — BOG ან TBC-ით სწრაფი გადახდა.</p>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div> <span id="step1">აირჩიე წერტილი</span></div>
+      <div class="step"><div class="step-num">2</div> <span id="step2">გადაიხადე</span></div>
+      <div class="step"><div class="step-num">3</div> <span id="step3">მანქანა ირთვება</span></div>
+    </div>
+  </div>
+
+  <div class="section-title" id="section-machines">სარეცხი წერტილები</div>
+  <div class="machines-grid" id="machines-grid"></div>
+</main>
+
+<!-- Payment modal -->
+<div class="modal-bg" id="pay-modal-bg">
+  <div class="modal">
+    <div class="modal-handle"></div>
+
+    <!-- Step 1: choose bank -->
+    <div id="step-bank">
+      <div class="modal-title" id="modal-machine-name">AquaWash #1</div>
+      <div class="modal-sub" id="modal-machine-sub">აირჩიე გადახდის მეთოდი</div>
+
+      <div class="bank-grid" id="bank-grid">
+        <!-- populated dynamically based on config -->
+      </div>
+
+      <div class="input-group">
+        <label class="input-label" id="phone-label">📱 ტელეფონი (სურვილისამებრ)</label>
+        <input class="input-field" type="tel" id="phone-input" placeholder="+995 5XX XXX XXX" maxlength="20">
+      </div>
+      <button class="btn-secondary" onclick="closeModal()" id="btn-cancel">გაუქმება</button>
+    </div>
+
+    <!-- Step 2: payment details -->
+    <div class="pay-details" id="step-details">
+      <div class="modal-title" id="details-title">გადახდის დეტალები</div>
+      <div class="modal-sub" id="details-sub">BOG · საბანკო გადარიცხვა</div>
+      <div class="pay-amount-big" id="pay-amount">₾5</div>
+
+      <div class="pay-field">
+        <div>
+          <div class="pay-field-label" id="iban-label">IBAN ანგარიში</div>
+          <div class="pay-field-value" id="d-iban"></div>
+        </div>
+        <button class="copy-btn" onclick="copyField('d-iban',this)" id="copy-iban">📋 კოპირება</button>
+      </div>
+      <div class="pay-field">
+        <div>
+          <div class="pay-field-label" id="recipient-label">მიმღები</div>
+          <div class="pay-field-value" id="d-name"></div>
+        </div>
+        <button class="copy-btn" onclick="copyField('d-name',this)" id="copy-name">📋 კოპირება</button>
+      </div>
+      <div class="pay-field">
+        <div>
+          <div class="pay-field-label" id="purpose-label">დანიშნულება</div>
+          <div class="pay-field-value" id="d-purpose"></div>
+        </div>
+        <button class="copy-btn" onclick="copyField('d-purpose',this)" id="copy-purpose">📋 კოპირება</button>
+      </div>
+
+      <div class="pay-note" id="pay-note">
+        ⏱ გადახდის შემდეგ, ბოქსი ავტომატურად ირთვება 1-2 წუთში.<br>ბანკის აპიდან გადარიცხვის შემდეგ დააჭირე ღილაკს.
+      </div>
+
+      <button class="btn-primary" onclick="confirmPaid()" id="btn-confirm-paid">✅ გადახდა განვახორციელე</button>
+      <button class="btn-secondary" onclick="backToBank()" id="btn-back">← უკან</button>
+    </div>
+
+    <!-- Step 3: verifying -->
+    <div class="verification-screen" id="step-verify">
+      <div class="spinner"></div>
+      <div class="verify-title" id="verify-title">ადმინი ადასტურებს...</div>
+      <div class="verify-sub" id="verify-sub">ადმინი ამოწმებს გადარიცხვას. გთხოვთ, მოიცადოთ.</div>
+      <div class="verify-timer">
+        <span id="verify-countdown">300</span>
+        <span style="font-size:1rem;color:var(--text-dim)" id="verify-sec">წმ</span>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:16px;line-height:1.5" id="verify-hint">
+        გადარიცხვის შემდეგ ადმინი ადასტურებს და მანქანა ავტომატურად ჩაირთვება.
+      </div>
+      <button class="btn-secondary" onclick="closeModal()" style="margin-top:8px">გაუქმება</button>
+    </div>
+
+    <!-- Step 4: success -->
+    <div class="success-screen" id="step-success">
+      <div class="success-icon">🎉</div>
+      <div class="success-title" id="success-title">სარეცხი ჩაირთო!</div>
+      <div class="success-machine">
+        <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:4px" id="success-running">მუშაობს:</div>
+        <div style="font-weight:700" id="success-machine-name"></div>
+      </div>
+      <div style="font-size:0.8rem;color:var(--text-dim)" id="sms-sent-note"></div>
+      <button class="receipt-btn" onclick="downloadReceipt()" id="btn-receipt">
+        📄 <span id="receipt-btn-text">ქვითრის ჩამოტვირთვა</span>
+      </button>
+      <button class="btn-secondary" onclick="closeModal()" style="margin-top:16px" id="btn-close-success">დახურვა</button>
+    </div>
+
+    <div class="security-bar">🔒 <span id="sec-text">დაცული გადახდა · Firebase Realtime</span></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =====================================================
+// CLIENT SECURITY MODEL v2.3 — Admin-Confirms Flow:
+//  - კლიენტი ᲛᲮᲝᲚᲝᲓ კითხულობს config-ს (read-only)
+//  - კლიენტი ᲕᲔᲠ ცვლის config-ს — config/machines-საც
+//  - კლიენტი წერს მხოლოდ transactions-ს (pending სტატუსი)
+//  - მანქანის busy სტატუსს მხოლოდ ადმინი წერს
+//  - კლიენტი ელოდება Firebase listener-ს → txn.status==='success'
+//  - Firebase Rules: config write = "auth != null" (machines-საც)
+// =====================================================
+
+const T = {
+  ka: {
+    online: 'ონლაინ', offline_site: 'საიტი დროებით მიუწვდომელია',
+    maint_sub: 'ადმინი მუშაობს. მოიცადეთ...',
+    hero_title: 'დაასკანირე. გადაიხადე. დაიწყე.',
+    hero_sub: 'Self-service სამრეცხაო — BOG ან TBC-ით სწრაფი გადახდა.',
+    step1: 'აირჩიე წერტილი', step2: 'გადაიხადე', step3: 'მანქანა ირთვება',
+    section_machines: 'სარეცხი წერტილები',
+    modal_sub: 'აირჩიე გადახდის მეთოდი',
+    bog_sub: 'საქართველოს ბანკი', tbc_sub: 'თიბისი ბანკი',
+    phone_label: '📱 ტელეფონი (სურვილისამებრ)',
+    cancel: 'გაუქმება', back: '← უკან',
+    details_title: 'გადახდის დეტალები',
+    iban_label: 'IBAN ანგარიში', recipient_label: 'მიმღები', purpose_label: 'დანიშნულება',
+    copy: '📋 კოპირება', copied: '✓ კოპირდა',
+    pay_note: '⏱ გადახდის შემდეგ, ბოქსი ავტომატურად ირთვება 1-2 წუთში.<br>ბანკის აპიდან გადარიცხვის შემდეგ დააჭირე ღილაკს.',
+    confirm_paid: '✅ გადახდა განვახორციელე',
+    verifying: 'ადმინი ადასტურებს...', verify_sub: 'ადმინი ამოწმებს გადარიცხვას. გთხოვთ, მოიცადოთ.',
+    verify_sec: 'წმ',
+    success_title: 'სარეცხი ჩაირთო!', success_running: 'მუშაობს:',
+    receipt_btn: 'ქვითრის ჩამოტვირთვა', close: 'დახურვა',
+    sec_text: 'დაცული გადახდა · Firebase Realtime',
+    status_free: 'თავისუფალი', status_busy: 'დაკავებული', status_offline: 'გათიშული',
+    time_left: 'დარჩ:', wash_done: 'რეცხვა დასრულდა',
+    toast_started: ' ჩაირთო!', toast_cancel: 'გაუქმდა',
+    no_payment: 'გადახდა გათიშულია. მოიცადეთ...',
+  },
+  en: {
+    online: 'Online', offline_site: 'Site temporarily unavailable',
+    maint_sub: 'Admin is working. Please wait...',
+    hero_title: 'Scan. Pay. Start.',
+    hero_sub: 'Self-service laundromat — quick payment via BOG or TBC.',
+    step1: 'Choose a machine', step2: 'Pay', step3: 'Machine starts',
+    section_machines: 'Washing Machines',
+    modal_sub: 'Choose payment method',
+    bog_sub: 'Bank of Georgia', tbc_sub: 'TBC Bank',
+    phone_label: '📱 Phone (optional)',
+    cancel: 'Cancel', back: '← Back',
+    details_title: 'Payment Details',
+    iban_label: 'IBAN Account', recipient_label: 'Recipient', purpose_label: 'Reference',
+    copy: '📋 Copy', copied: '✓ Copied',
+    pay_note: '⏱ After payment, the machine will start automatically in 1-2 minutes.<br>Press the button after transferring from your banking app.',
+    confirm_paid: '✅ I have paid',
+    verifying: 'Admin is confirming...', verify_sub: 'Admin is checking the transfer. Please wait.',
+    verify_sec: 's',
+    success_title: 'Machine started!', success_running: 'Running:',
+    receipt_btn: 'Download Receipt', close: 'Close',
+    sec_text: 'Secure payment · Firebase Realtime',
+    status_free: 'Free', status_busy: 'Busy', status_offline: 'Offline',
+    time_left: 'Left:', wash_done: 'Wash complete',
+    toast_started: ' started!', toast_cancel: 'Cancelled',
+    no_payment: 'Payments disabled. Please wait...',
+  }
+};
+
+let lang = localStorage.getItem('aw_lang') || 'ka';
+let config = {};
+let selectedMachine = null;
+let selectedBank = null;
+let verifyInterval = null;
+let verifySeconds = 120;
+let receiptData = null;
+
+// ===== RATE LIMITING: confirmPaid-ზე =====
+let lastConfirmTime = 0;
+const CONFIRM_COOLDOWN_MS = 10000; // 10 წამი
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('aw_lang', l);
+  document.getElementById('lang-ka').classList.toggle('active', l === 'ka');
+  document.getElementById('lang-en').classList.toggle('active', l === 'en');
+  applyLang();
+}
+
+function t(key) { return (T[lang] || T['ka'])[key] || key; }
+
+function sanitizeDisplay(str) {
+  if (!str) return '';
+  return String(str).replace(/[<>'"&]/g, c => ({'<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;','&':'&amp;'}[c]));
+}
+
+function applyLang() {
+  const set = (id, html) => { const el = document.getElementById(id); if(el) el.innerHTML = html; };
+  const setText = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text; };
+  set('header-status', t('online'));
+  set('maint-text', t('offline_site'));
+  set('maint-sub', t('maint_sub'));
+  set('hero-title', t('hero_title'));
+  set('hero-sub', t('hero_sub'));
+  setText('step1', t('step1'));
+  setText('step2', t('step2'));
+  setText('step3', t('step3'));
+  setText('section-machines', t('section_machines'));
+  set('phone-label', t('phone_label'));
+  setText('btn-cancel', t('cancel'));
+  setText('btn-back', t('back'));
+  setText('details-title', t('details_title'));
+  setText('iban-label', t('iban_label'));
+  setText('recipient-label', t('recipient_label'));
+  setText('purpose-label', t('purpose_label'));
+  set('pay-note', t('pay_note'));
+  setText('btn-confirm-paid', t('confirm_paid'));
+  setText('verify-title', t('verifying'));
+  setText('verify-sub', t('verify_sub'));
+  setText('verify-sec', t('verify_sec'));
+  setText('success-title', t('success_title'));
+  setText('success-running', t('success_running'));
+  setText('receipt-btn-text', t('receipt_btn'));
+  setText('btn-close-success', t('close'));
+  setText('sec-text', t('sec_text'));
+  document.querySelectorAll('.copy-btn:not(.copied)').forEach(b => {
+    b.textContent = t('copy');
+  });
+  renderMachines();
+}
+
+// ========== INIT ==========
+function init() {
+  applyLang();
+  // READ-ONLY: კლიენტი მხოლოდ კითხულობს config-ს
+  _db.ref('config').on('value', (snap) => {
+    const saved = snap.val();
+    if (saved) {
+      config = saved;
+      if (!config.siteEnabled) {
+        document.getElementById('maintenance-overlay').classList.remove('hidden');
+      } else {
+        document.getElementById('maintenance-overlay').classList.add('hidden');
+      }
+      // ლოგო/სახელი განახლება
+      const li = document.getElementById('logo-icon');
+      const ln = document.getElementById('logo-name');
+      if (li && config.logoEmoji) li.textContent = config.logoEmoji;
+      if (ln && config.siteName) ln.textContent = config.siteName;
+    }
+    renderMachines();
+  });
+}
+
+function renderMachines() {
+  const grid = document.getElementById('machines-grid');
+  const machines = (config.machines || []);
+  if (!machines.length) {
+    grid.innerHTML = `<div style="color:var(--text-dim);font-size:0.85rem;grid-column:1/-1;text-align:center;padding:40px 0">Loading...</div>`;
+    return;
+  }
+  grid.innerHTML = machines.map((m, i) => {
+    const statusLabel = {free: t('status_free'), busy: t('status_busy'), offline: t('status_offline')}[m.status] || m.status;
+    let timerHtml = '';
+    if (m.status === 'busy' && m.busyUntil) {
+      const rem = Math.max(0, Math.floor((m.busyUntil - Date.now()) / 1000));
+      const mins = Math.floor(rem / 60), secs = rem % 60;
+      const totalDuration = (config.washTimeout || 30) * 60;
+      const pct = Math.max(0, Math.min(100, (rem / totalDuration) * 100));
+      const display = rem > 0 ? `${mins}:${secs.toString().padStart(2,'0')}` : t('wash_done');
+      timerHtml = `
+        <div class="timer-bar-wrap">
+          <div class="timer-label">
+            <span>${t('time_left')}</span>
+            <span class="timer-countdown" id="tc-${sanitizeDisplay(String(m.id))}">${display}</span>
+          </div>
+          <div class="timer-bar"><div class="timer-fill" id="tf-${sanitizeDisplay(String(m.id))}" style="width:${pct}%"></div></div>
+        </div>`;
+    }
+    const busyAnim = m.status === 'busy'
+      ? `<div class="busy-anim"><div class="drop"></div><div class="drop"></div><div class="drop"></div></div>`
+      : '';
+    const clickAttr = m.status === 'free' ? `onclick="openPayModal(${Number(m.id)})"` : '';
+    return `
+      <div class="machine-card ${sanitizeDisplay(m.status)}" style="animation-delay:${i*0.07}s" ${clickAttr} id="mc-${sanitizeDisplay(String(m.id))}">
+        ${busyAnim}
+        <div class="machine-header">
+          <div class="machine-num">#${Number(m.id)}</div>
+          <div class="machine-status-badge">${statusLabel}</div>
+        </div>
+        <div class="machine-name">${sanitizeDisplay(m.name)}</div>
+        <div class="machine-price">₾${Number(m.price)}</div>
+        ${timerHtml}
+      </div>`;
+  }).join('');
+  startTimers();
+}
+
+function startTimers() {
+  clearInterval(window._timerInterval);
+  window._timerInterval = setInterval(() => {
+    (config.machines || []).forEach(m => {
+      if (m.status === 'busy' && m.busyUntil) {
+        const rem = Math.max(0, Math.floor((m.busyUntil - Date.now()) / 1000));
+        const tc = document.getElementById('tc-' + m.id);
+        const tf = document.getElementById('tf-' + m.id);
+        if (tc) {
+          const mins = Math.floor(rem / 60), secs = rem % 60;
+          tc.textContent = rem > 0 ? `${mins}:${secs.toString().padStart(2,'0')}` : t('wash_done');
+        }
+        if (tf) {
+          const totalDuration = (config.washTimeout || 30) * 60;
+          const pct = Math.max(0, Math.min(100, (rem / totalDuration) * 100));
+          tf.style.width = pct + '%';
+        }
+        // კლიენტი აღარ ცვლის config-ს! ადმინი ამას გააკეთებს Firebase-ის timer-ით
+      }
+    });
+  }, 1000);
+}
+
+// ========== MODAL ==========
+function openPayModal(id) {
+  selectedMachine = (config.machines || []).find(m => Number(m.id) === Number(id));
+  if (!selectedMachine || selectedMachine.status !== 'free') return;
+
+  // გადახდა გათიშულია?
+  const bogOk = config.bogEnabled && config.bogIban;
+  const tbcOk = config.tbcEnabled && config.tbcIban;
+  if (!bogOk && !tbcOk) {
+    showToast(t('no_payment'));
+    return;
+  }
+
+  document.getElementById('modal-machine-name').textContent = selectedMachine.name;
+  document.getElementById('modal-machine-sub').textContent = t('modal_sub');
+  document.getElementById('pay-amount').textContent = '₾' + selectedMachine.price;
+  document.getElementById('d-purpose').textContent = selectedMachine.name;
+  document.getElementById('phone-input').value = '';
+
+  // ბანკის ღილაკები — მხოლოდ ჩართული ბანკები
+  const bankGrid = document.getElementById('bank-grid');
+  bankGrid.innerHTML = '';
+  if (bogOk) {
+    bankGrid.innerHTML += `
+      <div class="bank-btn" onclick="selectBank('bog')" id="bank-bog">
+        <div class="bank-icon">🏦</div>
+        <div class="bank-name">BOG</div>
+        <div class="bank-sub">${t('bog_sub')}</div>
+      </div>`;
+  }
+  if (tbcOk) {
+    bankGrid.innerHTML += `
+      <div class="bank-btn" onclick="selectBank('tbc')" id="bank-tbc">
+        <div class="bank-icon">🏦</div>
+        <div class="bank-name">TBC</div>
+        <div class="bank-sub">${t('tbc_sub')}</div>
+      </div>`;
+  }
+
+  // თუ მხოლოდ ერთი ბანკია, პირდაპირ გადადი details-ზე
+  if (bogOk && !tbcOk) {
+    document.getElementById('pay-modal-bg').classList.add('open');
+    selectBank('bog');
+    return;
+  }
+  if (tbcOk && !bogOk) {
+    document.getElementById('pay-modal-bg').classList.add('open');
+    selectBank('tbc');
+    return;
+  }
+
+  document.getElementById('pay-modal-bg').classList.add('open');
+  showStep('bank');
+  applyLang();
+}
+
+// ===== VERCEL API URL =====
+const VERCEL_API = 'https://aqua-wash-9ywz.vercel.app';
+
+async function selectBank(bank) {
+  if (bank !== 'bog' && bank !== 'tbc') return;
+  selectedBank = bank;
+  document.querySelectorAll('.bank-btn').forEach(b => b.classList.remove('selected'));
+  const bankEl = document.getElementById('bank-' + bank);
+  if (bankEl) bankEl.classList.add('selected');
+
+  const bankName = bank === 'bog'
+    ? 'BOG · ' + t('bog_sub')
+    : 'TBC · ' + t('tbc_sub');
+  document.getElementById('details-sub').textContent = bankName;
+
+  // ავტომატური გადახდა — Vercel API-ს გავუგზავნოთ
+  const apiEnabled = bank === 'bog' ? config.bogEnabled : config.tbcEnabled;
+  const merchantId = bank === 'bog' ? config.bogMerchant : config.tbcMerchant;
+
+  if (apiEnabled && merchantId) {
+    // ავტომატური რეჟიმი — BOG/TBC checkout გვერდზე გადამისამართება
+    try {
+      showToast('⏳ გადახდის გვერდი იტვირთება...');
+      const txnId = 'TXN' + Date.now() + '_' + Math.random().toString(36).slice(2,7).toUpperCase();
+      const endpoint = bank === 'bog' ? '/api/bog-create-order' : '/api/tbc-create-order';
+
+      // Firebase-ში pending txn ვწერთ
+      receiptData = {
+        id: txnId,
+        machine: selectedMachine.name,
+        machineId: Number(selectedMachine.id),
+        amount: Number(selectedMachine.price),
+        bank: bank.toUpperCase(),
+        time: new Date().toLocaleString(lang === 'en' ? 'en-US' : 'ka-GE'),
+        status: 'pending'
+      };
+      await _db.ref('transactions').child(txnId).set(receiptData);
+
+      // მანქანა pending-ად
+      const machSnap = await _db.ref('config/machines').once('value');
+      const machines = machSnap.val();
+      if (Array.isArray(machines)) {
+        const updated = machines.map(m =>
+          Number(m.id) === Number(selectedMachine.id) && m.status === 'free'
+            ? { ...m, status: 'busy', busyUntil: Date.now() + 10 * 60 * 1000, _pending: true }
+            : m
+        );
+        await _db.ref('config/machines').set(updated);
+      }
+
+      const resp = await fetch(VERCEL_API + endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          txnId,
+          amount: selectedMachine.price,
+          machineId: selectedMachine.id,
+          machineName: selectedMachine.name
+        })
+      });
+      const data = await resp.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+    } catch (e) {
+      console.warn('Auto payment failed, falling back to manual:', e);
+    }
+  }
+
+  // Manual რეჟიმი (IBAN გადარიცხვა) — credentials არ არის ან API შეცდომა
+  const iban = bank === 'bog' ? (config.bogIban || '') : (config.tbcIban || '');
+  document.getElementById('d-iban').textContent = iban;
+  document.getElementById('d-name').textContent = config.ownerName || '';
+  document.querySelectorAll('.copy-btn').forEach(b => { b.textContent = t('copy'); b.classList.remove('copied'); });
+  setTimeout(() => showStep('details'), 200);
+}
+
+function backToBank() { showStep('bank'); }
+
+function copyField(id, btn) {
+  const text = document.getElementById(id).textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = t('copied');
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = t('copy'); btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    // fallback
+    const el = document.getElementById(id);
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    document.execCommand('copy');
+    btn.textContent = t('copied');
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = t('copy'); btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// Active Firebase listener ref — cleanup-ისთვის
+let _txnListener = null;
+let _txnListenerRef = null;
+
+function confirmPaid() {
+  // Rate limiting
+  const now = Date.now();
+  if (now - lastConfirmTime < CONFIRM_COOLDOWN_MS) {
+    showToast('⏳ გთხოვთ, ცოტა მოიცადოთ...');
+    return;
+  }
+  lastConfirmTime = now;
+
+  if (!selectedMachine || !selectedBank) return;
+
+  // countdown — ადმინის confirm-ის მოლოდინი
+  showStep('verify');
+  verifySeconds = config.paymentTimeout ? config.paymentTimeout * 60 : 300;
+  document.getElementById('verify-countdown').textContent = verifySeconds;
+
+  clearInterval(verifyInterval);
+  verifyInterval = setInterval(() => {
+    verifySeconds--;
+    document.getElementById('verify-countdown').textContent = Math.max(0, verifySeconds);
+    if (verifySeconds <= 0) {
+      clearInterval(verifyInterval);
+      _detachTxnListener();
+      showToast('⏱ ვადა ამოიწურა. ადმინთან დაუკავშირდი.', '');
+    }
+  }, 1000);
+
+  // ტრანზაქცია — მხოლოდ pending
+  const txnId = 'TXN' + Date.now() + '_' + Math.random().toString(36).slice(2,7).toUpperCase();
+  const rawPhone = document.getElementById('phone-input')?.value || '';
+  const phone = rawPhone.replace(/[^0-9+\s-]/g,'').trim().slice(0,20);
+  const txnTime = new Date().toLocaleString(lang === 'en' ? 'en-US' : 'ka-GE');
+
+  receiptData = {
+    id: txnId,
+    machine: selectedMachine.name,
+    machineId: Number(selectedMachine.id),
+    amount: Number(selectedMachine.price),
+    bank: selectedBank.toUpperCase(),
+    time: txnTime,
+    phone: phone,
+    status: 'pending'
+  };
+
+  // მანქანა დაუყოვნებლივ pending-ად ვნიშნავთ Firebase-ში — სხვა კლიენტს ვერ ავირჩევს
+  const machinesRef = _db.ref('config/machines');
+  machinesRef.once('value').then(snap => {
+    const machines = snap.val();
+    if (Array.isArray(machines)) {
+      const updated = machines.map(m => {
+        if (Number(m.id) === Number(selectedMachine.id) && m.status === 'free') {
+          return { ...m, status: 'busy', busyUntil: Date.now() + 10 * 60 * 1000, _pending: true };
+        }
+        return m;
+      });
+      machinesRef.set(updated);
+    }
+  }).catch(() => {/* silent — txn continues */});
+
+  // Firebase-ში ვწერთ pending txn-ს
+  _db.ref('transactions').push(receiptData).then(ref => {
+    // ვაკვირდებით ამ txn-ის სტატუსს — ადმინი ცვლის 'success'-ად
+    _txnListenerRef = ref;
+    _txnListener = ref.on('value', snap => {
+      const txn = snap.val();
+      if (!txn) return;
+      if (txn.status === 'success') {
+        clearInterval(verifyInterval);
+        _detachTxnListener();
+        _onPaymentConfirmed(txn);
+      } else if (txn.status === 'rejected') {
+        clearInterval(verifyInterval);
+        _detachTxnListener();
+        // მანქანა უკან free-ზე ვაბრუნებთ
+        _db.ref('config/machines').once('value').then(snap => {
+          const machines = snap.val();
+          if (Array.isArray(machines)) {
+            const updated = machines.map(m => {
+              if (Number(m.id) === Number(receiptData.machineId) && m._pending) {
+                return { ...m, status: 'free', busyUntil: null, _pending: false };
+              }
+              return m;
+            });
+            _db.ref('config/machines').set(updated);
+          }
+        }).catch(()=>{});
+        showToast('❌ გადახდა უარყოფილია. ადმინთან დაუკავშირდი.', '');
+        showStep('details');
+      }
+    });
+  }).catch(() => {
+    showToast('❌ Firebase შეცდომა. სცადე თავიდან.', '');
+    showStep('details');
+    clearInterval(verifyInterval);
+  });
+}
+
+function _detachTxnListener() {
+  if (_txnListenerRef && _txnListener) {
+    _txnListenerRef.off('value', _txnListener);
+    _txnListener = null;
+    _txnListenerRef = null;
+  }
+}
+
+// იძახება Firebase-ის listener-იდან — მხოლოდ ადმინის confirm-ის შემდეგ
+function _onPaymentConfirmed(txn) {
+  receiptData = {
+    id: txn.id,
+    machine: txn.machine,
+    machineId: txn.machineId,
+    amount: txn.amount,
+    bank: txn.bank,
+    time: txn.time,
+    phone: txn.phone || '',
+    status: 'success'
+  };
+
+  // კლიენტი ᲕᲔᲠ ეხება config/machines-ს — ადმინმა უკვე გააკეთა
+  document.getElementById('sms-sent-note').textContent = txn.phone ? `📱 ${sanitizeDisplay(txn.phone)}` : '';
+  document.getElementById('success-machine-name').textContent = sanitizeDisplay(txn.machine);
+  showStep('success');
+  showToast('✅ ' + sanitizeDisplay(txn.machine) + t('toast_started'), 'success');
+}
+
+function closeModal() {
+  document.getElementById('pay-modal-bg').classList.remove('open');
+  clearInterval(verifyInterval);
+  _detachTxnListener();
+  // თუ pending სტატუსით გამოვიდა — მანქანა უკან free-ზე
+  if (receiptData && receiptData.machineId) {
+    _db.ref('config/machines').once('value').then(snap => {
+      const machines = snap.val();
+      if (Array.isArray(machines)) {
+        const updated = machines.map(m => {
+          if (Number(m.id) === Number(receiptData.machineId) && m._pending) {
+            return { ...m, status: 'free', busyUntil: null, _pending: false };
+          }
+          return m;
+        });
+        _db.ref('config/machines').set(updated);
+      }
+    }).catch(()=>{});
+  }
+  selectedBank = null;
+  receiptData = null;
+}
+
+function showStep(step) {
+  ['bank','details','verify','success'].forEach(s => {
+    const el = document.getElementById('step-' + s);
+    if (!el) return;
+    el.classList.remove('visible');
+    el.style.display = 'none';
+  });
+  const target = document.getElementById('step-' + step);
+  if (target) { target.style.display = 'block'; target.classList.add('visible'); }
+}
+
+function downloadReceipt() {
+  if (!receiptData) return;
+  const lines = lang === 'en' ? [
+    '====== AquaWash Receipt ======',
+    'Transaction ID: ' + receiptData.id,
+    'Machine: ' + receiptData.machine,
+    'Amount: ₾' + receiptData.amount,
+    'Bank: ' + receiptData.bank,
+    'Time: ' + receiptData.time,
+    receiptData.phone ? 'Phone: ' + receiptData.phone : '',
+    '==============================',
+    'Thank you for using AquaWash!'
+  ] : [
+    '====== AquaWash ქვითარი ======',
+    'ID: ' + receiptData.id,
+    'წერტილი: ' + receiptData.machine,
+    'თანხა: ₾' + receiptData.amount,
+    'ბანკი: ' + receiptData.bank,
+    'დრო: ' + receiptData.time,
+    receiptData.phone ? 'ტელ: ' + receiptData.phone : '',
+    '==============================',
+    'გმადლობთ AquaWash-ის გამოყენებისთვის!'
+  ];
+  const content = lines.filter(Boolean).join('\n');
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'aquawash-receipt-' + receiptData.id + '.txt';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function showToast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'toast ' + type + ' show';
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+document.getElementById('pay-modal-bg').addEventListener('click', e => {
+  if (e.target === document.getElementById('pay-modal-bg')) closeModal();
+});
+
+init();
+
+// ===== PWA: SERVICE WORKER =====
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'aquawash-v1';
+    const OFFLINE_URLS = [location.href];
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(OFFLINE_URLS)));
+      self.skipWaiting();
+    });
+    self.addEventListener('activate', e => {
+      e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))));
+      self.clients.claim();
+    });
+    self.addEventListener('fetch', e => {
+      if (e.request.mode === 'navigate') {
+        e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+      }
+    });
+  `;
+  const blob = new Blob([swCode], {type: 'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+
+// ===== PWA: INSTALL PROMPT =====
+let _installPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _installPrompt = e;
+  // ვაჩვენებთ install ღილაკს
+  const btn = document.getElementById('pwa-install-btn');
+  if (btn) btn.style.display = 'flex';
+});
+
+window.addEventListener('appinstalled', () => {
+  const btn = document.getElementById('pwa-install-btn');
+  if (btn) btn.style.display = 'none';
+  _installPrompt = null;
+});
+
+function installPWA() {
+  if (!_installPrompt) return;
+  _installPrompt.prompt();
+  _installPrompt.userChoice.then(() => { _installPrompt = null; });
+}
+</script>
+</body>
+</html>

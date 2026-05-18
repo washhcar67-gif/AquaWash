@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaWash Coupon — ადმინი</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+  const _fbApp = firebase.initializeApp({
+    apiKey: "AIzaSyBZMnqX1gTm2qlAgmleSjOb6IQpd0DFCO4",
+    authDomain: "aquawash-5ddf9.firebaseapp.com",
+    databaseURL: "https://aquawash-5ddf9-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "aquawash-5ddf9",
+    storageBucket: "aquawash-5ddf9.firebasestorage.app",
+    messagingSenderId: "522097469784",
+    appId: "1:522097469784:web:965b3338f67ad264f51d2d"
+  });
+  const _db = firebase.database();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: rgba(255,255,255,0.08);
+    --accent: #00d4ff;
+    --green: #10b981;
+    --yellow: #f59e0b;
+    --red: #ef4444;
+    --text: #f1f5f9;
+    --muted: #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans Georgian', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Login */
+  #login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 40px 32px;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+  }
+  .login-logo { font-size: 40px; margin-bottom: 16px; }
+  .login-title { font-size: 20px; font-weight: 900; margin-bottom: 6px; }
+  .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+  .pin-input {
+    width: 100%;
+    padding: 14px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 20px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 6px;
+    text-align: center;
+    outline: none;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .pin-input:focus { border-color: var(--accent); }
+  .login-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 800;
+    font-family: 'Noto Sans Georgian', sans-serif;
+    cursor: pointer;
+  }
+  .login-error { font-size: 13px; color: var(--red); margin-top: 10px; min-height: 20px; }
+
+  /* Admin UI */
+  #admin-ui { display: none; }
+  .admin-layout { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+  }
+  .sidebar-logo {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 20px;
+  }
+  .sidebar-logo-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .sidebar-logo-text { font-size: 15px; font-weight: 900; }
+  .sidebar-logo-text span { color: var(--accent); }
+  .nav-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding: 12px 12px 6px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--muted);
+    transition: all 0.15s;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(0,212,255,0.1); color: var(--accent); }
+  .sidebar-bottom { margin-top: auto; }
+  .logout-btn {
+    width: 100%;
+    padding: 9px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Noto Sans Georgian', sans-serif;
+    transition: all 0.2s;
+  }
+  .logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+  /* Main */
+  .main {
+    margin-left: 220px;
+    flex: 1;
+    padding: 32px;
+    max-width: calc(100% - 220px);
+  }
+  .page-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 28px;
+  }
+  .page-title { font-size: 22px; font-weight: 900; }
+
+  /* Tabs */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* Cards row */
+  .cards-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .stat-label { font-size: 11px; color: var(--muted); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  .stat-val { font-size: 28px; font-weight: 900; font-family: 'Space Mono', monospace; }
+  .stat-val.green { color: var(--green); }
+  .stat-val.accent { color: var(--accent); }
+  .stat-val.yellow { color: var(--yellow); }
+
+  /* Settings sections */
+  .settings-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 16px;
+  }
+  .settings-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+
+  /* Toggle */
+  .toggle-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .toggle-row:first-of-type { padding-top: 0; }
+  .toggle-info strong { font-size: 14px; display: block; margin-bottom: 2px; }
+  .toggle-info span { font-size: 12px; color: var(--muted); }
+  .toggle {
+    width: 44px; height: 24px;
+    background: var(--surface2);
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 16px; height: 16px;
+    background: var(--muted);
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+  .toggle.on { background: rgba(0,212,255,0.15); border-color: var(--accent); }
+  .toggle.on::after { left: 23px; background: var(--accent); }
+
+  /* Days grid */
+  .days-grid {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .day-btn {
+    padding: 8px 14px;
+    border-radius: 100px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Noto Sans Georgian', sans-serif;
+    transition: all 0.15s;
+  }
+  .day-btn.on {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.1);
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* Field */
+  .field-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .field { }
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .field input, .field select {
+    width: 100%;
+    padding: 11px 14px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'Noto Sans Georgian', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus { border-color: var(--accent); }
+
+  /* Accessories */
+  .acc-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .acc-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+  }
+  .acc-left { display: flex; align-items: center; gap: 10px; }
+  .acc-icon-big { font-size: 22px; }
+  .acc-name { font-size: 14px; font-weight: 600; }
+  .acc-name-en { font-size: 12px; color: var(--muted); }
+
+  /* Coupons log */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  td {
+    padding: 12px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .badge-green { background: rgba(16,185,129,0.15); color: var(--green); }
+  .badge-red { background: rgba(239,68,68,0.1); color: var(--red); }
+  .badge-yellow { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .empty-row { text-align: center; color: var(--muted); padding: 40px; font-size: 14px; }
+
+  /* Save bar */
+  .save-bar {
+    position: fixed;
+    bottom: 0; left: 220px; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 14px 32px;
+    display: flex; justify-content: flex-end; gap: 10px;
+    transform: translateY(100%);
+    transition: transform 0.3s;
+    z-index: 100;
+  }
+  .save-bar.visible { transform: translateY(0); }
+
+  .btn-sm {
+    padding: 8px 16px;
+    border-radius: 9px;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Noto Sans Georgian', sans-serif;
+    transition: all 0.15s;
+  }
+  .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-sm.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+    font-weight: 800;
+  }
+  .btn-sm.danger { border-color: rgba(239,68,68,0.3); color: var(--red); }
+
+  .toast {
+    position: fixed;
+    bottom: 80px; right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 13px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    z-index: 200;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.ok { border-color: rgba(16,185,129,0.4); color: var(--green); }
+  .toast.err { border-color: rgba(239,68,68,0.4); color: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">🎫</div>
+    <div class="login-title">კუპონის ადმინი</div>
+    <div class="login-sub">Coupon Admin Panel</div>
+    <input type="password" class="pin-input" id="pin-input" placeholder="••••••" maxlength="20" onkeydown="if(event.key==='Enter')checkPin()">
+    <button class="login-btn" onclick="checkPin()">შესვლა / Login</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ADMIN UI -->
+<div id="admin-ui">
+  <div class="admin-layout">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">🎫</div>
+        <div class="sidebar-logo-text">Aqua<span>Wash</span></div>
+      </div>
+      <div class="nav-label">მენიუ</div>
+      <div class="nav-item active" onclick="showTab('dashboard',this)">📊 დეშბორდი</div>
+      <div class="nav-item" onclick="showTab('settings',this)">⚙️ პარამეტრები</div>
+      <div class="nav-item" onclick="showTab('log',this)">📋 კუპონების ლოგი</div>
+      <div class="sidebar-bottom">
+        <button class="logout-btn" onclick="logout()">🔐 გამოსვლა</button>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="page-header">
+        <div class="page-title" id="page-title">დეშბორდი</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-sm" onclick="refreshLog()">↻ განახლება</button>
+          <button class="btn-sm primary" onclick="saveSettings()">💾 შენახვა</button>
+        </div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div class="tab-panel active" id="tab-dashboard">
+        <div class="cards-row">
+          <div class="stat-card">
+            <div class="stat-label">დღეს გაცემული</div>
+            <div class="stat-val accent" id="s-today">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">კვირაში</div>
+            <div class="stat-val green" id="s-week">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">სულ გაცემული</div>
+            <div class="stat-val" id="s-total">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">დღის ლიმიტი</div>
+            <div class="stat-val yellow" id="s-limit">—</div>
+          </div>
+        </div>
+
+        <!-- Popular accessory -->
+        <div class="settings-section">
+          <div class="settings-title">პოპულარული აქსესუარები</div>
+          <div id="acc-stats"></div>
+        </div>
+
+        <!-- Recent -->
+        <div class="settings-title" style="margin-bottom:12px;">ბოლო კუპონები</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>კოდი</th><th>აქსესუარი</th><th>ბოქსი</th><th>დრო</th><th>სტატუსი</th></tr></thead>
+            <tbody id="recent-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="tab-panel" id="tab-settings">
+
+        <!-- Active days -->
+        <div class="settings-section">
+          <div class="settings-title">📅 მოქმედი დღეები</div>
+          <div class="days-grid" id="days-grid">
+            <button class="day-btn on" data-day="0" onclick="toggleDay(this)">ორშ</button>
+            <button class="day-btn on" data-day="1" onclick="toggleDay(this)">სამ</button>
+            <button class="day-btn on" data-day="2" onclick="toggleDay(this)">ოთხ</button>
+            <button class="day-btn on" data-day="3" onclick="toggleDay(this)">ხუთ</button>
+            <button class="day-btn on" data-day="4" onclick="toggleDay(this)">პარ</button>
+            <button class="day-btn on" data-day="5" onclick="toggleDay(this)">შაბ</button>
+            <button class="day-btn on" data-day="6" onclick="toggleDay(this)">კვი</button>
+          </div>
+        </div>
+
+        <!-- Hours & limits -->
+        <div class="settings-section">
+          <div class="settings-title">⏰ საათები და ლიმიტები</div>
+          <div class="field-group">
+            <div class="field">
+              <label>გახსნის დრო</label>
+              <input type="time" id="f-open" value="09:00" onchange="markDirty()">
+            </div>
+            <div class="field">
+              <label>დახურვის დრო</label>
+              <input type="time" id="f-close" value="21:00" onchange="markDirty()">
+            </div>
+            <div class="field">
+              <label>დღიური ლიმიტი</label>
+              <input type="number" id="f-daily-limit" value="50" min="1" max="500" onchange="markDirty()">
+            </div>
+            <div class="field">
+              <label>კუპონის ვადა (წთ)</label>
+              <input type="number" id="f-duration" value="30" min="5" max="120" onchange="markDirty()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Accessories -->
+        <div class="settings-section">
+          <div class="settings-title">🎁 ხელმისაწვდომი აქსესუარები</div>
+          <div class="acc-list">
+            <div class="acc-row">
+              <div class="acc-left">
+                <div class="acc-icon-big">🌀</div>
+                <div>
+                  <div class="acc-name">მტვერსასრუტი</div>
+                  <div class="acc-name-en">Vacuum Cleaner</div>
+                </div>
+              </div>
+              <div class="toggle on" id="toggle-vacuum" onclick="this.classList.toggle('on');markDirty()"></div>
+            </div>
+            <div class="acc-row">
+              <div class="acc-left">
+                <div class="acc-icon-big">⚙️</div>
+                <div>
+                  <div class="acc-name">ბორბლები</div>
+                  <div class="acc-name-en">Tire Cleaner</div>
+                </div>
+              </div>
+              <div class="toggle on" id="toggle-tires" onclick="this.classList.toggle('on');markDirty()"></div>
+            </div>
+            <div class="acc-row">
+              <div class="acc-left">
+                <div class="acc-icon-big">🟫</div>
+                <div>
+                  <div class="acc-name">ხალიჩა</div>
+                  <div class="acc-name-en">Carpet Dryer</div>
+                </div>
+              </div>
+              <div class="toggle on" id="toggle-carpet" onclick="this.classList.toggle('on');markDirty()"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boxes -->
+        <div class="settings-section">
+          <div class="settings-title">🔲 ბოქსების რაოდენობა</div>
+          <div class="field-group" style="grid-template-columns:1fr;">
+            <div class="field">
+              <label>ბოქსების რაოდენობა</label>
+              <input type="number" id="f-boxes" value="3" min="1" max="20" onchange="markDirty()">
+            </div>
+          </div>
+        </div>
+
+        <!-- PIN -->
+        <div class="settings-section">
+          <div class="settings-title">🔐 PIN შეცვლა</div>
+          <div class="field-group">
+            <div class="field">
+              <label>ახალი PIN</label>
+              <input type="password" id="f-new-pin" placeholder="••••••" maxlength="20">
+            </div>
+            <div class="field">
+              <label>გაიმეორე</label>
+              <input type="password" id="f-new-pin2" placeholder="••••••" maxlength="20">
+            </div>
+          </div>
+          <button class="btn-sm primary" style="margin-top:12px;" onclick="changePin()">PIN შეცვლა</button>
+        </div>
+
+      </div>
+
+      <!-- LOG -->
+      <div class="tab-panel" id="tab-log">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div style="font-size:13px;color:var(--muted);">სულ: <span id="log-count" style="color:var(--text);font-weight:700;">0</span> კუპონი</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-sm" onclick="exportCSV()">⬇ CSV</button>
+            <button class="btn-sm danger" onclick="clearLog()">🗑 გასუფთავება</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>კოდი</th><th>აქსესუარი</th><th>ბოქსი</th><th>თარიღი</th><th>სტატუსი</th></tr></thead>
+            <tbody id="log-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div>
+</div>
+
+<div class="save-bar" id="save-bar">
+  <button class="btn-sm" onclick="discardChanges()">გაუქმება</button>
+  <button class="btn-sm primary" onclick="saveSettings()">💾 შენახვა</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== CONFIG =====
+const STORAGE_KEY = 'aw_coupon_config';
+const LOG_KEY = 'aw_coupon_log';
+const PIN_KEY = 'aw_coupon_pin';
+const DEFAULT_PIN = '1234';
+
+let config = {
+  days: [0,1,2,3,4,5,6],
+  open: '09:00',
+  close: '21:00',
+  dailyLimit: 50,
+  duration: 30,
+  boxes: 3,
+  accessories: { vacuum: true, tires: true, carpet: true }
+};
+let dirty = false;
+let authenticated = false;
+
+// ===== AUTH =====
+function getPin() {
+  return localStorage.getItem(PIN_KEY) || DEFAULT_PIN;
+}
+
+function checkPin() {
+  const entered = document.getElementById('pin-input').value;
+  if (entered === getPin()) {
+    authenticated = true;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-ui').style.display = 'block';
+    loadConfig();
+    renderDashboard();
+  } else {
+    document.getElementById('login-error').textContent = '❌ PIN არასწორია';
+    document.getElementById('pin-input').value = '';
+    setTimeout(() => document.getElementById('login-error').textContent = '', 2000);
+  }
+}
+
+function logout() {
+  authenticated = false;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('admin-ui').style.display = 'none';
+  document.getElementById('pin-input').value = '';
+}
+
+function changePin() {
+  const p1 = document.getElementById('f-new-pin').value;
+  const p2 = document.getElementById('f-new-pin2').value;
+  if (!p1) { showToast('PIN ცარიელია', 'err'); return; }
+  if (p1 !== p2) { showToast('PIN-ები არ ემთხვევა', 'err'); return; }
+  localStorage.setItem(PIN_KEY, p1);
+  document.getElementById('f-new-pin').value = '';
+  document.getElementById('f-new-pin2').value = '';
+  showToast('✅ PIN შეიცვალა', 'ok');
+}
+
+// ===== CONFIG =====
+function loadConfig() {
+  // Load from Firebase
+  _db.ref('coupon_config').once('value').then(snap => {
+    if (snap.val()) config = {...config, ...snap.val()};
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+    applyConfigToForm();
+  });
+  // Load log
+  loadLogFromFirebase();
+
+  // Listen for new coupons realtime
+  _db.ref('coupon_log').on('value', () => {
+    if (authenticated) loadLogFromFirebase();
+  });
+}
+
+function applyConfigToForm() {
+  document.getElementById('f-open').value = config.open || '09:00';
+  document.getElementById('f-close').value = config.close || '21:00';
+  document.getElementById('f-daily-limit').value = config.dailyLimit || 50;
+  document.getElementById('f-duration').value = config.duration || 30;
+  document.getElementById('f-boxes').value = config.boxes || 3;
+
+  document.querySelectorAll('.day-btn').forEach(btn => {
+    const d = Number(btn.dataset.day);
+    btn.classList.toggle('on', (config.days || [0,1,2,3,4,5,6]).includes(d));
+  });
+
+  const acc = config.accessories || {};
+  ['vacuum','tires','carpet'].forEach(k => {
+    const el = document.getElementById('toggle-' + k);
+    if (el) el.classList.toggle('on', acc[k] !== false);
+  });
+}
+
+function saveSettings() {
+  config.open = document.getElementById('f-open').value;
+  config.close = document.getElementById('f-close').value;
+  config.dailyLimit = parseInt(document.getElementById('f-daily-limit').value) || 50;
+  config.duration = parseInt(document.getElementById('f-duration').value) || 30;
+  config.boxes = parseInt(document.getElementById('f-boxes').value) || 3;
+  config.days = [];
+  document.querySelectorAll('.day-btn.on').forEach(btn => config.days.push(Number(btn.dataset.day)));
+  config.accessories = {
+    vacuum: document.getElementById('toggle-vacuum').classList.contains('on'),
+    tires: document.getElementById('toggle-tires').classList.contains('on'),
+    carpet: document.getElementById('toggle-carpet').classList.contains('on'),
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  _db.ref('coupon_config').set(config).then(() => {
+    showToast('✅ Firebase-ში შენახულია', 'ok');
+  }).catch(e => {
+    showToast('⚠ ლოკალურად შენახულია (Firebase: ' + e.code + ')', 'err');
+  });
+  dirty = false;
+  document.getElementById('save-bar').classList.remove('visible');
+  showToast('✅ შენახულია', 'ok');
+  renderDashboard();
+
+  // Broadcast to coupon page
+  localStorage.setItem('aw_coupon_config_v', Date.now().toString());
+}
+
+function discardChanges() {
+  applyConfigToForm();
+  dirty = false;
+  document.getElementById('save-bar').classList.remove('visible');
+}
+
+function markDirty() {
+  dirty = true;
+  document.getElementById('save-bar').classList.add('visible');
+}
+
+function toggleDay(btn) {
+  btn.classList.toggle('on');
+  markDirty();
+}
+
+// ===== LOG =====
+function getLog() {
+  const raw = localStorage.getItem(LOG_KEY);
+  return raw ? JSON.parse(raw) : [];
+}
+
+// Load log from Firebase
+function loadLogFromFirebase() {
+  _db.ref('coupon_log').orderByChild('ts').limitToLast(200).once('value').then(snap => {
+    const log = [];
+    if (snap.val()) snap.forEach(c => log.push(c.val()));
+    log.reverse();
+    localStorage.setItem(LOG_KEY, JSON.stringify(log));
+    renderLog();
+    renderDashboard();
+  });
+}
+
+function refreshLog() {
+  renderDashboard();
+  renderLog();
+  showToast('განახლდა', 'ok');
+}
+
+function renderLog() {
+  const log = getLog();
+  document.getElementById('log-count').textContent = log.length;
+  const tbody = document.getElementById('log-tbody');
+  if (!log.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-row">კუპონები არ არის</td></tr>';
+    return;
+  }
+  tbody.innerHTML = log.slice().reverse().map(e => `
+    <tr>
+      <td style="font-family:'Space Mono',monospace;color:var(--accent);letter-spacing:2px;">${e.code}</td>
+      <td>${e.acc}</td>
+      <td>${e.box}</td>
+      <td style="color:var(--muted);font-size:12px;">${e.time}</td>
+      <td><span class="badge ${e.expired ? 'badge-red' : 'badge-green'}">${e.expired ? 'ვადაგასული' : 'გამოყენებული'}</span></td>
+    </tr>`).join('');
+}
+
+function clearLog() {
+  if (!confirm('კუპონების ლოგი წაიშლება?')) return;
+  localStorage.removeItem(LOG_KEY);
+  _db.ref('coupon_log').remove();
+  renderLog();
+  renderDashboard();
+  showToast('🗑 ლოგი გასუფთავდა', 'ok');
+}
+
+function exportCSV() {
+  const log = getLog();
+  if (!log.length) { showToast('ლოგი ცარიელია', 'err'); return; }
+  const rows = [['კოდი','აქსესუარი','ბოქსი','დრო','სტატუსი']];
+  log.forEach(e => rows.push([e.code, e.acc, e.box, e.time, e.expired ? 'ვადაგასული' : 'გამოყენებული']));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+  a.download = 'aquawash-coupons.csv';
+  a.click();
+}
+
+// ===== DASHBOARD =====
+function renderDashboard() {
+  const log = getLog();
+  const today = new Date().toLocaleDateString('ka-GE');
+  const todayLog = log.filter(e => e.time && e.time.startsWith(today));
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const weekLog = log.filter(e => e.ts && e.ts >= weekAgo);
+
+  document.getElementById('s-today').textContent = todayLog.length;
+  document.getElementById('s-week').textContent = weekLog.length;
+  document.getElementById('s-total').textContent = log.length;
+  document.getElementById('s-limit').textContent = (config.dailyLimit || 50) - todayLog.length + ' დარჩა';
+
+  // Acc stats
+  const counts = {};
+  log.forEach(e => { counts[e.acc] = (counts[e.acc] || 0) + 1; });
+  const accStats = document.getElementById('acc-stats');
+  if (!Object.keys(counts).length) {
+    accStats.innerHTML = '<div style="color:var(--muted);font-size:13px;">სტატისტიკა ჯერ არ არის</div>';
+  } else {
+    const max = Math.max(...Object.values(counts));
+    accStats.innerHTML = Object.entries(counts).sort((a,b) => b[1]-a[1]).map(([name, cnt]) => `
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <span style="font-size:13px;font-weight:600;">${name}</span>
+          <span style="font-family:'Space Mono',monospace;font-size:13px;color:var(--accent);">${cnt}</span>
+        </div>
+        <div style="height:4px;background:var(--surface2);border-radius:2px;">
+          <div style="height:4px;background:var(--accent);border-radius:2px;width:${Math.round(cnt/max*100)}%;transition:width 0.4s;"></div>
+        </div>
+      </div>`).join('');
+  }
+
+  // Recent
+  const recent = document.getElementById('recent-tbody');
+  const last8 = log.slice(-8).reverse();
+  if (!last8.length) {
+    recent.innerHTML = '<tr><td colspan="5" class="empty-row">კუპონები არ არის</td></tr>';
+  } else {
+    recent.innerHTML = last8.map(e => `
+      <tr>
+        <td style="font-family:'Space Mono',monospace;color:var(--accent);letter-spacing:2px;">${e.code}</td>
+        <td>${e.acc}</td>
+        <td>${e.box}</td>
+        <td style="color:var(--muted);font-size:12px;">${e.time}</td>
+        <td><span class="badge badge-green">გაცემული</span></td>
+      </tr>`).join('');
+  }
+}
+
+// ===== NAV =====
+function showTab(id, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  el.classList.add('active');
+  const titles = { dashboard: 'დეშბორდი', settings: 'პარამეტრები', log: 'კუპონების ლოგი' };
+  document.getElementById('page-title').textContent = titles[id] || id;
+  if (id === 'log') renderLog();
+  if (id === 'dashboard') renderDashboard();
+}
+
+// ===== TOAST =====
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 2500);
+}
+
+// Listen for storage events (coupon page logs)
+window.addEventListener('storage', e => {
+  if (e.key === LOG_KEY && authenticated) renderDashboard();
+});
+</script>
+</body>
+</html>

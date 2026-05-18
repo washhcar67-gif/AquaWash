@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaWash — უფასო აქსესუარი</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+  const _fbApp = firebase.initializeApp({
+    apiKey: "AIzaSyBZMnqX1gTm2qlAgmleSjOb6IQpd0DFCO4",
+    authDomain: "aquawash-5ddf9.firebaseapp.com",
+    databaseURL: "https://aquawash-5ddf9-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "aquawash-5ddf9",
+    storageBucket: "aquawash-5ddf9.firebasestorage.app",
+    messagingSenderId: "522097469784",
+    appId: "1:522097469784:web:965b3338f67ad264f51d2d"
+  });
+  const _db = firebase.database();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: rgba(255,255,255,0.08);
+    --accent: #00d4ff;
+    --accent2: #0ea5e9;
+    --green: #10b981;
+    --text: #f1f5f9;
+    --muted: #64748b;
+    --card-radius: 20px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans Georgian', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 16px 60px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Background effects */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -100px; right: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(14,165,233,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Header */
+  .header {
+    width: 100%;
+    max-width: 440px;
+    padding: 48px 0 32px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .logo-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: var(--accent);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+
+  .logo-name {
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .logo-name span { color: var(--accent); }
+
+  .header-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 100px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+  }
+
+  .header h1 {
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1.2;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+  }
+
+  .header p {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* Screens */
+  .screen { display: none; width: 100%; max-width: 440px; flex-direction: column; align-items: center; position: relative; z-index: 1; }
+  .screen.active { display: flex; animation: fadeUp 0.4s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Steps */
+  .steps {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    transition: border-color 0.2s;
+  }
+
+  .step:hover { border-color: rgba(0,212,255,0.2); }
+
+  .step-num {
+    width: 30px; height: 30px;
+    background: rgba(0,212,255,0.15);
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .step-content { flex: 1; }
+  .step-ka { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .step-en { font-size: 11px; color: var(--muted); }
+
+  /* Section label */
+  .section-label {
+    width: 100%;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* Accessory grid */
+  .acc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .acc-item {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .acc-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(0,212,255,0.1), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .acc-item:hover { border-color: rgba(0,212,255,0.3); }
+  .acc-item:hover::before { opacity: 1; }
+
+  .acc-item.selected {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.08);
+  }
+
+  .acc-item.selected::before { opacity: 1; }
+
+  .acc-item.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 8px; right: 10px;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .acc-icon { font-size: 28px; margin-bottom: 8px; }
+  .acc-ka { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .acc-en { font-size: 10px; color: var(--muted); }
+
+  /* Select & inputs */
+  .field-wrap { width: 100%; margin-bottom: 12px; }
+
+  .field-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  select {
+    width: 100%;
+    padding: 13px 16px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'Noto Sans Georgian', sans-serif;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+
+  select:focus { border-color: var(--accent); }
+
+  /* Error */
+  .error-msg {
+    font-size: 12px;
+    color: #f87171;
+    margin-bottom: 10px;
+    display: none;
+    padding: 8px 12px;
+    background: rgba(248,113,113,0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(248,113,113,0.2);
+  }
+
+  /* Button */
+  .btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Noto Sans Georgian', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background 0.15s;
+  }
+
+  .btn:active::after { background: rgba(255,255,255,0.1); }
+  .btn:active { transform: scale(0.98); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #000;
+    font-weight: 800;
+  }
+
+  .btn-primary:hover { box-shadow: 0 0 30px rgba(0,212,255,0.3); }
+
+  .btn-ghost {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    margin-top: 10px;
+  }
+
+  .btn-ghost:hover { border-color: rgba(255,255,255,0.15); color: var(--text); }
+
+  /* Coupon card */
+  .coupon-card {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 32px 24px;
+    text-align: center;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .coupon-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .coupon-glow {
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(0,212,255,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .coupon-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .coupon-code {
+    font-family: 'Space Mono', monospace;
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 10px;
+    margin-bottom: 16px;
+    text-shadow: 0 0 30px rgba(0,212,255,0.4);
+    position: relative;
+  }
+
+  .coupon-detail {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.15);
+    border-radius: 100px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+
+  /* Timer */
+  .timer-wrap { width: 100%; }
+
+  .timer-bar {
+    height: 3px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .timer-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 3px;
+    transition: width 1s linear;
+  }
+
+  .timer-fill.warn { background: linear-gradient(90deg, #f59e0b, #ef4444); }
+
+  .timer-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* Info card */
+  .info-card {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+
+  .info-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .info-row:first-child { padding-top: 0; }
+
+  .info-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+  .info-text { font-size: 13px; line-height: 1.6; color: var(--muted); }
+  .info-text strong { color: var(--text); }
+
+  /* Expired state */
+  .expired .coupon-code {
+    color: var(--muted);
+    text-shadow: none;
+    text-decoration: line-through;
+  }
+
+  .expired-badge {
+    display: inline-block;
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #f87171;
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">🚿</div>
+    <div class="logo-name">Aqua<span>Wash</span></div>
+  </div>
+  <div style="display:flex;justify-content:flex-end;width:100%;margin-bottom:12px;">
+    <button onclick="toggleLang()" id="lang-btn" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:100px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'Noto Sans Georgian',sans-serif;transition:all 0.2s;">🌐 English</button>
+  </div>
+  <div class="header-tag">🎁 გახსნის სპეციალური შეთავაზება</div>
+  <h1>გარეცხე და მიიღე<br>უფასო სერვისი</h1>
+  <p>გარეცხე ავტომობილი და გაიქირავე ნებისმიერი აქსესუარი — უფასოდ!</p>
+</div>
+
+<!-- SCREEN 1 -->
+<div id="s1" class="screen active">
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-ka">გარეცხე ნებისმიერ ბოქსში</div>
+        <div class="step-en">Wash your car in any box</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-ka">შეავსე ეს ფორმა</div>
+        <div class="step-en">Fill in this form below</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-ka">მიიღე უფასო კოდი 30 წუთით</div>
+        <div class="step-en">Get a free code valid for 30 minutes</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">აირჩიე აქსესუარი / Choose accessory</div>
+
+  <div class="acc-grid">
+    <div class="acc-item" onclick="selectAcc(this,'მტვერსასრუტი')">
+      <div class="acc-icon">🌀</div>
+      <div class="acc-ka">მტვერსასრუტი</div>
+      <div class="acc-en">Vacuum</div>
+    </div>
+    <div class="acc-item" onclick="selectAcc(this,'ბორბლები')">
+      <div class="acc-icon">⚙️</div>
+      <div class="acc-ka">ბორბლები</div>
+      <div class="acc-en">Tires</div>
+    </div>
+    <div class="acc-item" onclick="selectAcc(this,'ხალიჩა')">
+      <div class="acc-icon">🟫</div>
+      <div class="acc-ka">ხალიჩა</div>
+      <div class="acc-en">Carpet</div>
+    </div>
+  </div>
+
+  <div class="field-wrap">
+    <label class="field-label">ბოქსის ნომერი / Box number</label>
+    <select id="box">
+      <option value="">-- აირჩიე ბოქსი --</option>
+      <option>ბოქსი #1</option>
+      <option>ბოქსი #2</option>
+      <option>ბოქსი #3</option>
+    </select>
+  </div>
+
+  <div id="acc-error" class="error-msg">⚠ გთხოვ აირჩიე აქსესუარი / Please select an accessory</div>
+
+  <button class="btn btn-primary" onclick="goStep2()">კუპონის მიღება →</button>
+
+</div>
+
+<!-- SCREEN 2 -->
+<div id="s2" class="screen">
+
+  <div class="coupon-card" id="coupon-card">
+    <div class="coupon-glow"></div>
+    <div class="coupon-label">შენი უფასო კუპონი · Your Free Coupon</div>
+    <div class="coupon-code" id="coupon-code">——————</div>
+    <div class="coupon-detail">
+      <span id="coupon-acc">—</span>
+      <span style="opacity:0.4;">·</span>
+      <span id="coupon-box">—</span>
+    </div>
+    <div id="expired-badge" class="expired-badge" style="display:none;">ვადა ამოიწურა · Expired</div>
+    <div class="timer-wrap">
+      <div class="timer-bar"><div class="timer-fill" id="timer-fill"></div></div>
+      <div class="timer-text" id="timer-text">მოქმედებს 30:00</div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-row">
+      <div class="info-icon">⚡</div>
+      <div class="info-text">კოდი შეიყვანე <strong>აქსესუარის პანელზე</strong> — მტვერსასრუტის, ბორბლების ან ხალიჩის გასაწურის ტერმინალზე.</div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">⏱</div>
+      <div class="info-text">კოდი მოქმედებს <strong>30 წუთი</strong> გაცემიდან. ვადის გასვლის შემდეგ კოდი გაუქმდება.</div>
+    </div>
+  </div>
+
+  <button class="btn btn-ghost" onclick="goBack()">← უკან / Back</button>
+
+</div>
+
+<script>
+// ===== LANG =====
+let lang = localStorage.getItem('aw_coupon_lang') || 'ka';
+const T = {
+  ka: {
+    tag: '🎁 გახსნის სპეციალური შეთავაზება',
+    title: 'გარეცხე და მიიღე<br>უფასო სერვისი',
+    sub: 'გარეცხე ავტომობილი და გაიქირავე ნებისმიერი აქსესუარი — უფასოდ!',
+    step1ka: 'გარეცხე ნებისმიერ ბოქსში', step1en: 'Wash your car in any box',
+    step2ka: 'შეავსე ეს ფორმა', step2en: 'Fill in this form below',
+    step3ka: 'მიიღე უფასო კოდი 30 წუთით', step3en: 'Get a free code valid for 30 minutes',
+    accLabel: 'აირჩიე აქსესუარი / Choose accessory',
+    acc1: 'მტვერსასრუტი', acc2: 'ბორბლები', acc3: 'ხალიჩა',
+    boxLabel: 'ბოქსის ნომერი / Box number',
+    boxPlaceholder: '-- აირჩიე ბოქსი --',
+    btnGet: 'კუპონის მიღება →',
+    couponLabel: 'შენი უფასო კუპონი · Your Free Coupon',
+    info1: 'კოდი შეიყვანე <strong>აქსესუარის პანელზე</strong> — მტვერსასრუტის, ბორბლების ან ხალიჩის გასაწურის ტერმინალზე.',
+    info2: 'კოდი მოქმედებს <strong>30 წუთი</strong> გაცემიდან. ვადის გასვლის შემდეგ კოდი გაუქმდება.',
+    btnBack: '← უკან / Back',
+    timerActive: 'მოქმედებს ',
+    timerExpired: 'ვადა ამოიწურა · Expired',
+    errAcc: '⚠ გთხოვ აირჩიე აქსესუარი / Please select an accessory',
+    errBox: '⚠ გთხოვ აირჩიე ბოქსი / Please select a box',
+    langBtn: '🌐 English',
+    closed: '⚠ კუპონები ამ დროს მიუწვდომელია / Coupons unavailable now',
+    limitReached: '⚠ დღიური ლიმიტი ამოიწურა / Daily limit reached',
+  },
+  en: {
+    tag: '🎁 Grand Opening Special Offer',
+    title: 'Wash & Get<br>Free Service',
+    sub: 'Wash your car and use any accessory — for free!',
+    step1ka: 'Wash your car in any box', step1en: '',
+    step2ka: 'Fill in this form below', step2en: '',
+    step3ka: 'Get a free code valid for 30 minutes', step3en: '',
+    accLabel: 'Choose accessory',
+    acc1: 'Vacuum', acc2: 'Tires', acc3: 'Carpet',
+    boxLabel: 'Box number',
+    boxPlaceholder: '-- Select a box --',
+    btnGet: 'Get Coupon →',
+    couponLabel: 'Your Free Coupon',
+    info1: 'Enter this code at the <strong>accessory terminal</strong> — vacuum cleaner, tire cleaner, or carpet dryer panel.',
+    info2: 'The code is valid for <strong>30 minutes</strong> from issue. After expiry, the code will be cancelled.',
+    btnBack: '← Back',
+    timerActive: 'Valid for ',
+    timerExpired: 'Expired',
+    errAcc: '⚠ Please select an accessory',
+    errBox: '⚠ Please select a box',
+    langBtn: '🌐 ქართული',
+    closed: '⚠ Coupons unavailable now',
+    limitReached: '⚠ Daily limit reached',
+  }
+};
+
+function t(key) { return (T[lang] || T.ka)[key] || key; }
+
+function toggleLang() {
+  lang = lang === 'ka' ? 'en' : 'ka';
+  localStorage.setItem('aw_coupon_lang', lang);
+  applyLang();
+}
+
+function applyLang() {
+  const l = T[lang];
+  document.getElementById('lang-btn').textContent = l.langBtn;
+  document.querySelector('.header-tag').textContent = l.tag;
+  document.querySelector('.header h1').innerHTML = l.title;
+  document.querySelector('.header p').textContent = l.sub;
+  document.getElementById('acc-error').textContent = l.errAcc;
+}
+
+// ===== CONFIG (Firebase) =====
+let _couponConfig = { dailyLimit: 50, duration: 30, days: [0,1,2,3,4,5,6], open: '09:00', close: '21:00', boxes: 3, accessories: { vacuum: true, tires: true, carpet: true } };
+
+// Load config from Firebase realtime
+_db.ref('coupon_config').on('value', snap => {
+  if (snap.val()) _couponConfig = { ..._couponConfig, ...snap.val() };
+  applyLang();
+});
+
+function isAvailable() {
+  // If config not loaded yet from Firebase, allow
+  if (!_couponConfig || !Array.isArray(_couponConfig.days)) return true;
+  const cfg = _couponConfig;
+  const now = new Date();
+  // Firebase days: 0=Mon...6=Sun; JS getDay: 0=Sun,1=Mon...6=Sat
+  const jsDay = now.getDay();
+  const day = jsDay === 0 ? 6 : jsDay - 1;
+  if (!cfg.days.includes(day)) return false;
+  const [oh, om] = (cfg.open || '00:00').split(':').map(Number);
+  const [ch, cm] = (cfg.close || '23:59').split(':').map(Number);
+  const mins = now.getHours() * 60 + now.getMinutes();
+  if (mins < oh * 60 + om || mins > ch * 60 + cm) return false;
+  return true;
+}
+
+async function getDailyCount() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const snap = await _db.ref('coupon_log').orderByChild('date').equalTo(today).once('value');
+    return snap.numChildren();
+  } catch(e) {
+    return 0;
+  }
+}
+
+async function logCoupon(code, acc, box) {
+  const today = new Date().toISOString().split('T')[0];
+  try {
+    await _db.ref('coupon_log/' + code).set({
+      code,
+      acc,
+      box,
+      date: today,
+      time: new Date().toLocaleString('ka-GE'),
+      ts: Date.now(),
+      used: false,
+      expired: false
+    });
+  } catch(e) {
+    console.warn('Log failed:', e);
+    // Continue anyway — show coupon even if log fails
+  }
+}
+
+async function isCodeUsed(code) {
+  try {
+    const snap = await _db.ref('coupon_log/' + code).once('value');
+    return snap.exists();
+  } catch(e) {
+    return false;
+  }
+}
+
+// ===== MAIN =====
+let selectedAcc = '';
+let timerInterval = null;
+let secondsLeft = 1800;
+
+function selectAcc(el, name) {
+  document.querySelectorAll('.acc-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedAcc = name;
+  document.getElementById('acc-error').style.display = 'none';
+}
+
+async function goStep2() {
+  const box = document.getElementById('box').value;
+  const errEl = document.getElementById('acc-error');
+
+  if (!selectedAcc) { errEl.style.display = 'block'; errEl.textContent = t('errAcc'); return; }
+  if (!box) { errEl.style.display = 'block'; errEl.textContent = t('errBox'); return; }
+
+  // Check availability
+  if (!isAvailable()) {
+    errEl.style.display = 'block'; errEl.textContent = t('closed'); return;
+  }
+
+  // Check daily limit (Firebase)
+  const btn = document.querySelector('.btn-primary');
+  btn.textContent = '⏳...'; btn.disabled = true;
+
+  try {
+    const count = await getDailyCount();
+    if (count >= (_couponConfig.dailyLimit || 50)) {
+      errEl.style.display = 'block'; errEl.textContent = t('limitReached');
+      btn.textContent = t('btnGet'); btn.disabled = false;
+      return;
+    }
+
+    // Generate unique code
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    let unique = false;
+    let attempts = 0;
+    while (!unique && attempts < 5) {
+      code = '';
+      for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+      unique = !(await isCodeUsed(code));
+      attempts++;
+    }
+
+    // Save to Firebase
+    await logCoupon(code, selectedAcc, box);
+
+    // Show coupon
+    document.getElementById('coupon-code').textContent = code;
+    document.getElementById('coupon-acc').textContent = selectedAcc;
+    document.getElementById('coupon-box').textContent = box;
+    document.getElementById('expired-badge').style.display = 'none';
+    document.getElementById('coupon-card').classList.remove('expired');
+    document.getElementById('timer-fill').classList.remove('warn');
+
+    document.getElementById('s1').classList.remove('active');
+    document.getElementById('s2').classList.add('active');
+    window.scrollTo(0, 0);
+
+    secondsLeft = (_couponConfig.duration || 30) * 60;
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(tick, 1000);
+    tick();
+
+    // Mark expired when timer ends
+    setTimeout(() => {
+      _db.ref('coupon_log/' + code).update({ expired: true });
+    }, secondsLeft * 1000);
+
+  } catch(e) {
+    errEl.style.display = 'block'; errEl.textContent = '⚠ შეცდომა, სცადე თავიდან';
+  }
+
+  btn.textContent = t('btnGet'); btn.disabled = false;
+}
+
+function tick() {
+  if (secondsLeft <= 0) {
+    clearInterval(timerInterval);
+    document.getElementById('timer-text').textContent = 'ვადა ამოიწურა · Expired';
+    document.getElementById('timer-fill').style.width = '0%';
+    document.getElementById('coupon-code').textContent = '------';
+    document.getElementById('coupon-card').classList.add('expired');
+    document.getElementById('expired-badge').style.display = 'inline-block';
+    return;
+  }
+  const pct = (secondsLeft / 1800) * 100;
+  const m = Math.floor(secondsLeft / 60);
+  const s = secondsLeft % 60;
+  document.getElementById('timer-text').textContent = 'მოქმედებს ' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  document.getElementById('timer-fill').style.width = pct + '%';
+  if (secondsLeft <= 300) document.getElementById('timer-fill').classList.add('warn');
+  secondsLeft--;
+}
+
+function goBack() {
+  clearInterval(timerInterval);
+  document.getElementById('s2').classList.remove('active');
+  document.getElementById('s1').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// Init
+applyLang();
+</script>
+
+</body>
+</html>
